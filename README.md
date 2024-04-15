@@ -1,3 +1,5 @@
+This script will allow you to automate the restoration of Postgres from a backup downloaded from a remote repository
+
 Parameters for connecting to the PostgreSQL database
 ```
 PGHOST=""
