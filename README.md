@@ -1,35 +1,35 @@
-This script will allow you to automate the restoration of Postgres from a backup downloaded from a remote repository
+# Container pg_restore script
 
-Parameters for connecting to the PostgreSQL database
+This script will allow you to automate the restoration of Postgres from a backup downloaded from a remote repository
 ```
-PGHOST=""
+#!/bin/bash
+
+# Parameters for connecting to the PostgreSQL database
+PGHOST="localhost"
 PGUSER=""
 PGPASSWORD=""
 DATABASE=""
+
+# Create a backup file name with the current date
+BACKUP_FILE="db_backup_$(date +'%Y%m%d').sql"
+
+# Path to save the backup
+cd /your/path/to/backup/dir/
+
+# Create a database backup
+docker exec <POSTGRESQL_CONTAINER_NAME> pg_dump -h $PGHOST -U $PGUSER -d $DATABASE > $BACKUP_FILE   # replace <POSTGRESQL_CONTAINER_NAME> with your posrgresql container name
+
+# Archiving a backup
+tar -czf $BACKUP_FILE.tar.gz $BACKUP_FILE
+
+# Deleting the original backup file
+rm $BACKUP_FILE
+
+# Push archive to remote repository (optional)
+cd /your/path/to/localrepo/with/backups
+git add .
+git commit -m "Added database backup"
+git push origin main
 ```
-Pulling an archive with a backup copy from the repository
-```
-cd /your/path/to/archiveslocation/
-git pull origin main
-```
-Name of the backup archive
-```
-BACKUP_FILE=$(basename $(ls -t db_backup*.tar.gz | head -n 1))
-SQLFILE=$(ls -t db_backup*.sql | head -n 1)
-```
-Unpacking the archive
-```
-tar -xzf $BACKUP_FILE -C /your/path/to/archiveslocation/
-```
-Delivery of backup to container
-```
-docker cp /your/path/to/archiveslocation/$SQLFILE $(docker ps -aqf "name=<POSTGRESQL_CONTAINER_NAME>"):/your_desired_path_in_container/$SQLFILE  # replace <POSTGRESQL_CONTAINER_NAME> with your PostgreSQL container name
-```
-Run pg_restore in a PostgreSQL container
-```
-docker exec <POSTGRESQL_CONTAINER_NAME> psql -U $PGUSER -d $DATABASE -f /your_desired_path_in_container/$SQLFILE # replace <POSTGRESQL_CONTAINER_NAME> with your PostgreSQL container name
-```
-Optional: Deleting the unpacked archive
-```
-rm /your/path/to/archiveslocation/$BACKUP_FILE
-```
+
+
